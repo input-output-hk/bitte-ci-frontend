@@ -1,0 +1,19 @@
+{
+  "name": "bitte-ci",
+  "application": {
+    "head": "assets/head.html",
+    "title": "bitte-ci",
+    "icon": "assets/favicon.png"
+  },
+  "external": {
+    "stylesheets": [
+      "assets/style.css"
+    ]
+  },
+  "source-directories": [
+    "source"
+  ],
+  "test-directories": [
+    "tests"
+  ]
+}
