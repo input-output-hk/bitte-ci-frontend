@@ -7,7 +7,7 @@
   },
   "external": {
     "stylesheets": [
-      "assets/style.css"
+      "assets/bootstrap-unlit.css"
     ]
   },
   "source-directories": [
