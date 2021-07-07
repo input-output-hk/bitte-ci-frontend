@@ -21,6 +21,7 @@
 
           installPhase = ''
             cp -r dist $out
+            cp -r assets $out/assets
           '';
         };
       };
