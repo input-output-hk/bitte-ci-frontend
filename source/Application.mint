@@ -106,7 +106,7 @@ store Application {
   }
 
   fun wsUrl {
-    if (url.protocol == "https") {
+    if (url.protocol == "https:") {
       "wss://" + url.host + "/ci/api/v1/socket"
     } else {
       "ws://" + url.host + "/ci/api/v1/socket"
