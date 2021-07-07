@@ -50,7 +50,16 @@ component PullRequest {
     }
   } where {
     found =
-      Array.find((b : Build) : Bool { b.id == build.id }, builds)
+      case (pr) {
+        Maybe::Just(jpr) =>
+          if (build.prId == jpr.id) {
+            Array.find((b : Build) : Bool { b.id == build.id }, builds)
+          } else {
+            Maybe.nothing()
+          }
+
+        => Maybe.nothing()
+      }
   }
 
   fun catcher (err : Object.Error) {
