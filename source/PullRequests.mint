@@ -1,8 +1,20 @@
+enum Order {
+  Organization
+  PrNumber
+}
+
+enum Direction {
+  Ascending
+  Descending
+}
+
 component PullRequests {
   connect Application exposing { socket }
 
   state prs : Array(PullRequest) = []
   state error : Maybe(String) = Maybe.nothing()
+  state order : Order = Order::Organization
+  state direction : Direction = Direction::Ascending
 
   fun componentDidMount {
     sequence {
@@ -30,12 +42,86 @@ component PullRequests {
     </Container>
   }
 
+  fun orderBy (key : Order) : Function(Html.Event, Promise(Never, Void)) {
+    (event : Html.Event) : Promise(Never, Void) {
+      next
+        {
+          order = key,
+          direction =
+            if (order == key) {
+              case (direction) {
+                Direction::Ascending => Direction::Descending
+                Direction::Descending => Direction::Ascending
+              }
+            } else {
+              direction
+            }
+        }
+    }
+  }
+
+  fun sortedPrs {
+    case (direction) {
+      Direction::Ascending =>
+        sorted
+        |> Array.reverse()
+
+      Direction::Descending =>
+        sorted
+    }
+  } where {
+    sorted =
+      prs
+      |> case (order) {
+        Order::Organization =>
+          Array.sortBy(
+            (pr : PullRequest) {
+              pr.data.organization.login
+            })
+
+        Order::PrNumber =>
+          Array.sortBy(
+            (pr : PullRequest) {
+              pr.data.pullRequest.number
+            })
+      }
+  }
+
+  fun sortLink (label : String, key : Order) {
+    <span
+      onClick={orderBy(key)}
+      style="white-space: pre;">
+
+      <{ "#{label} " }>
+
+      if (key == order) {
+        <{
+          case (direction) {
+            Direction::Ascending => "↑"
+            Direction::Descending => "↓"
+          }
+        }>
+      } else {
+        <{ "-" }>
+      }
+
+    </span>
+  }
+
   fun show {
     <table class="table table-sm">
       <thead>
         <tr>
+          <th>
+            <{ sortLink("Org", Order::Organization) }>
+          </th>
+
           <th>"Repo"</th>
-          <th>"#"</th>
+
+          <th>
+            <{ sortLink("#", Order::PrNumber) }>
+          </th>
+
           <th>"Commit"</th>
           <th>"Branch"</th>
           <th>"Title"</th>
@@ -45,7 +131,7 @@ component PullRequests {
       </thead>
 
       <tbody>
-        for (pr of prs) {
+        for (pr of sortedPrs()) {
           <PullRequestsRow pr={pr}/>
         }
       </tbody>
@@ -59,8 +145,20 @@ component PullRequestsRow {
   fun render {
     <tr>
       <td>
-        <a href={prUrl}>
-          <{ number }>
+        <a href={orgUrl}>
+          <img
+            src={orgImg}
+            style="height: 3em;">
+
+            <{ orgName }>
+
+          </img>
+        </a>
+      </td>
+
+      <td>
+        <a href={repoUrl}>
+          <{ repoName }>
         </a>
       </td>
 
@@ -72,7 +170,12 @@ component PullRequestsRow {
 
       <td>
         <a href={commitUrl}>
-          <{ sha }>
+          <{
+            sha
+            |> String.toArray()
+            |> Array.take(7)
+            |> String.fromArray()
+          }>
         </a>
       </td>
 
@@ -97,6 +200,15 @@ component PullRequestsRow {
       </td>
     </tr>
   } where {
+    orgName =
+      pr.data.organization.login
+
+    orgImg =
+      pr.data.organization.avatarUrl
+
+    orgUrl =
+      "https://github.com/" + orgName
+
     p =
       pr.data.pullRequest
 
@@ -107,6 +219,9 @@ component PullRequestsRow {
     createdAt =
       p.createdAt
       |> Time.relative(Time.now())
+
+    repoName =
+      p.head.repo.fullName
 
     prUrl =
       p.htmlUrl

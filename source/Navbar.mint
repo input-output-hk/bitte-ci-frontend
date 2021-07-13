@@ -6,7 +6,7 @@ component Navbar {
       <div class="container-fluid">
         <a
           class="navbar-brand"
-          href="#">
+          href="/">
 
           "Bitte CI"
 

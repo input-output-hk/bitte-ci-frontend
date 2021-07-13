@@ -85,24 +85,30 @@ store Application {
   }
 
   fun subscribe : Promise(Never, Void) {
-    next
-      {
-        socket =
-          Maybe.just(
-            socket
-            |> Maybe.withLazyDefault(
-              () {
-                WebSocket.open(
-                  {
-                    url = wsUrl(),
-                    reconnectOnClose = true,
-                    onMessage = onMessage,
-                    onOpen = onOpen,
-                    onError = handleError,
-                    onClose = handleClose
-                  })
-              }))
-      }
+    case (socket) {
+      Maybe::Just(s) =>
+        next { }
+
+      Maybe::Nothing =>
+        next
+          {
+            socket =
+              Maybe.just(
+                socket
+                |> Maybe.withLazyDefault(
+                  () {
+                    WebSocket.open(
+                      {
+                        url = wsUrl(),
+                        reconnectOnClose = true,
+                        onMessage = onMessage,
+                        onOpen = onOpen,
+                        onError = handleError,
+                        onClose = handleClose
+                      })
+                  }))
+          }
+    }
   }
 
   fun wsUrl {
@@ -142,17 +148,26 @@ store Application {
   }
 
   fun handleError : Promise(Never, Void) {
-    next { error = Maybe.just("Websocket failed") }
+    next { error = Maybe.just("WebSocket error") }
   }
 
   fun handleClose : Promise(Never, Void) {
-    next { socket = Maybe.nothing() }
+    next
+      {
+        socket = Maybe.nothing(),
+        error = Maybe.just("WebSocket closed")
+      }
   }
 
   fun onOpen (socket : WebSocket) : Promise(Never, Void) {
     sequence {
       subPage(socket, page)
-      next { socket = Maybe.just(socket) }
+
+      next
+        {
+          socket = Maybe.just(socket),
+          error = Maybe.nothing()
+        }
     }
   }
 

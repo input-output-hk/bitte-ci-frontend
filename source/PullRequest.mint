@@ -39,38 +39,33 @@ component PullRequest {
   }
 
   fun updateBuild (builds : Array(Build), build : Build) : Array(Build) {
-    case (found) {
-      Maybe::Just(elem) =>
-        builds
-        |> Array.setAt(Array.indexOf(elem, builds), build)
+    case (pr) {
+      Maybe::Just(justPr) =>
+        if (build.prId == justPr.id) {
+          case (Array.find((b : Build) : Bool { b.id == build.id }, builds)) {
+            Maybe::Just(found) =>
+              builds
+              |> Array.setAt(Array.indexOf(found, builds), build)
 
-      Maybe::Nothing =>
-        builds
-        |> Array.push(build)
-    }
-  } where {
-    found =
-      case (pr) {
-        Maybe::Just(jpr) =>
-          if (build.prId == jpr.id) {
-            Array.find((b : Build) : Bool { b.id == build.id }, builds)
-          } else {
-            Maybe.nothing()
+            Maybe::Nothing => builds
           }
+        } else {
+          builds
+        }
 
-        => Maybe.nothing()
-      }
+      Maybe::Nothing => builds
+    }
   }
 
   fun catcher (err : Object.Error) {
     next
       {
         pr = Maybe.nothing(),
-        error =
-          Maybe.just(
-            "failure: #{err
-            |> Object.Error.toString}")
+        error = Maybe.just("failure: #{msg}")
       }
+  } where {
+    msg =
+      Object.Error.toString(err)
   }
 
   fun render {
@@ -137,34 +132,64 @@ component PullRequest {
           <tr>
             <th>"Build"</th>
             <th>"Created"</th>
+            <th>"Updated"</th>
+            <th>"Finished"</th>
             <th>"Status"</th>
           </tr>
         </thead>
 
         <tbody>
           for (build of builds) {
-            <tr>
-              <td>
-                <a href={"/build/" + build.id}>
-                  <{ build.id }>
-                </a>
-              </td>
-
-              <td>
-                <{
-                  build.createdAt
-                  |> Time.relative(Time.now())
-                }>
-              </td>
-
-              <td>
-                <{ build.status }>
-              </td>
-            </tr>
+            showBuild(build)
           }
         </tbody>
       </table>
     </div>
+  }
+
+  fun showBuild (build : Build) {
+    <tr>
+      <td>
+        <a href={"/build/" + build.id}>
+          <{ build.id }>
+        </a>
+      </td>
+
+      <td>
+        <{
+          build.createdAt
+          |> Time.relative(Time.now())
+        }>
+      </td>
+
+      <td>
+        <{
+          case (build.updatedAt) {
+            Maybe::Just(t) =>
+              t
+              |> Time.relative(Time.now())
+
+            Maybe::Nothing => ""
+          }
+        }>
+      </td>
+
+      <td>
+        <{
+          case (build.finishedAt) {
+            Maybe::Just(t) =>
+              t
+              |> Time.relative(Time.now())
+
+            Maybe::Nothing => ""
+          }
+        }>
+      </td>
+
+      <td>
+        <{ build.status }>
+      </td>
+    </tr>
   }
 }
 
@@ -184,7 +209,13 @@ record PullRequest {
 }
 
 record PullRequestData {
-  pullRequest : PullRequestInner using "pull_request"
+  pullRequest : PullRequestInner using "pull_request",
+  organization : PullRequestOrg
+}
+
+record PullRequestOrg {
+  login : String,
+  avatarUrl : String using "avatar_url"
 }
 
 record PullRequestInner {
@@ -204,7 +235,8 @@ record PullRequestHead {
 }
 
 record PullRequestRepo {
-  htmlUrl : String using "html_url"
+  htmlUrl : String using "html_url",
+  fullName : String using "full_name"
 }
 
 record PullRequestUser {
