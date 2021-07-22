@@ -7,14 +7,10 @@ component Main {
 
       <{
         case (page) {
-          Page::PullRequests =>
-            <PullRequests/>
-
-          Page::PullRequest(id) =>
-            <PullRequest id={id}/>
-
-          Page::Build(id) =>
-            <Build id={id}/>
+          Page::PullRequests => <PullRequests/>
+          Page::PullRequest(id) => <PullRequest id={id}/>
+          Page::Build(id) => <Build id={id}/>
+          Page::Allocation(id) => <Allocation id={id}/>
         }
       }>
     </div>
@@ -22,12 +18,6 @@ component Main {
 }
 
 routes {
-  / {
-    sequence {
-      Application.setPage(Page::PullRequests)
-    }
-  }
-
   /pull_requests {
     Application.setPage(Page::PullRequests)
   }
@@ -38,5 +28,15 @@ routes {
 
   /pull_request/:id (id : Number) {
     Application.setPage(Page::PullRequest(id))
+  }
+
+  /allocation/:id (id : String) {
+    Application.setPage(Page::Allocation(id))
+  }
+
+  / {
+    sequence {
+      Application.setPage(Page::PullRequests)
+    }
   }
 }

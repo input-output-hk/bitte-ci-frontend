@@ -1,5 +1,6 @@
 component Container {
   connect Application exposing { error }
+
   property title : String
   property children : Array(Html) = []
 

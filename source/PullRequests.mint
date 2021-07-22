@@ -11,7 +11,7 @@ enum Direction {
 component PullRequests {
   connect Application exposing { socket }
 
-  state prs : Array(PullRequest) = []
+  state prs : Array(Model.PullRequest) = []
   state error : Maybe(String) = Maybe.nothing()
   state order : Order = Order::Organization
   state direction : Direction = Direction::Ascending
@@ -75,13 +75,13 @@ component PullRequests {
       |> case (order) {
         Order::Organization =>
           Array.sortBy(
-            (pr : PullRequest) {
+            (pr : Model.PullRequest) {
               pr.data.organization.login
             })
 
         Order::PrNumber =>
           Array.sortBy(
-            (pr : PullRequest) {
+            (pr : Model.PullRequest) {
               pr.data.pullRequest.number
             })
       }
@@ -140,7 +140,7 @@ component PullRequests {
 }
 
 component PullRequestsRow {
-  property pr : PullRequest
+  property pr : Model.PullRequest
 
   fun render {
     <tr>
@@ -247,5 +247,5 @@ component PullRequestsRow {
 }
 
 record MsgPullRequests {
-  pullRequests : Array(PullRequest) using "pull_requests"
+  pullRequests : Array(Model.PullRequest) using "pull_requests"
 }

@@ -1,9 +1,9 @@
 enum Msg {
-  PullRequest(PullRequest)
-  PullRequests(Array(PullRequest))
-  Allocation(Allocation)
-  Build(Build)
-  BuildWithLogs(BuildWithLogs)
+  PullRequest(Model.PullRequest)
+  PullRequests(Array(Model.PullRequest))
+  Allocation(Model.Allocation)
+  Build(Model.Build)
+  BuildWithLogs(Model.BuildWithLogs)
 }
 
 store Application {
@@ -24,23 +24,23 @@ store Application {
         console.debug(#{object})
         switch (#{type}) {
         case "pull_request": return #{try {
-            dec = decode value as PullRequest
+            dec = decode value as Model.PullRequest
             Result::Ok(Msg::PullRequest(dec))
           } catch Object.Error => err { Result::Err(Object.Error.toString(err)) }}
         case "pull_requests": return #{try {
-            dec = decode value as Array(PullRequest)
+            dec = decode value as Array(Model.PullRequest)
             Result::Ok(Msg::PullRequests(dec))
           } catch Object.Error => err { Result::Err(Object.Error.toString(err)) }}
         case "build": return #{try {
-            dec = decode value as BuildWithLogs
+            dec = decode value as Model.BuildWithLogs
             Result::Ok(Msg::BuildWithLogs(dec))
           } catch Object.Error => err { Result::Err(Object.Error.toString(err)) }}
         case "builds": return #{try {
-            dec = decode value as Build
+            dec = decode value as Model.Build
             Result::Ok(Msg::Build(dec))
           } catch Object.Error => err { Result::Err(Object.Error.toString(err)) }}
         case "allocations": return #{try {
-            dec = decode value as Allocation
+            dec = decode value as Model.Allocation
             Result::Ok(Msg::Allocation(dec))
           } catch Object.Error => err { Result::Err(Object.Error.toString(err)) }}
         default:
@@ -196,6 +196,14 @@ store Application {
           socket,
           encode {
             channel = "build",
+            uuid = id
+          })
+
+      Page::Allocation(id) =>
+        subChannel(
+          socket,
+          encode {
+            channel = "allocation",
             uuid = id
           })
     }

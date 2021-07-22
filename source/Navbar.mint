@@ -65,6 +65,7 @@ component Navbar {
         Page::PullRequest => true
         Page::PullRequests => true
         Page::Build => true
+        Page::Allocation => true
       }
   }
 }

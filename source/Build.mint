@@ -2,8 +2,8 @@ component Build {
   connect Application exposing { page }
 
   property id : String
-  state build : Maybe(Build) = Maybe.nothing()
-  state logs : Map(String, Array(LogLine)) = Map.empty()
+  state build : Maybe(Model.Build) = Maybe.nothing()
+  state logs : Map(String, Array(Model.LogLine)) = Map.empty()
   state error : Maybe(String) = Maybe.nothing()
 
   fun componentDidMount {
@@ -40,7 +40,7 @@ component Build {
     </Container>
   }
 
-  fun show (build : Build) {
+  fun show (build : Model.Build) {
     <div>
       <div>
         <a href={"/pull_request/" + Number.toString(build.prId)}>
@@ -78,17 +78,17 @@ component Build {
   }
 }
 
-record LogLine {
+record Model.LogLine {
   time : Time,
   line : String
 }
 
-record BuildWithLogs {
-  build : Build,
-  logs : Map(String, Array(LogLine))
+record Model.BuildWithLogs {
+  build : Model.Build,
+  logs : Map(String, Array(Model.LogLine))
 }
 
-record Build {
+record Model.Build {
   id : String,
   prId : Number using "pr_id",
   status : String using "build_status",

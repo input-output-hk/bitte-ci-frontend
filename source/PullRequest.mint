@@ -2,7 +2,7 @@ component PullRequest {
   connect Application exposing { page }
 
   property id : Number
-  state pr : Maybe(PullRequest) = Maybe.nothing()
+  state pr : Maybe(Model.PullRequest) = Maybe.nothing()
   state error : Maybe(String) = Maybe.nothing()
 
   fun componentDidMount {
@@ -18,7 +18,6 @@ component PullRequest {
 
       Msg::Allocation(alloc) =>
         sequence {
-          Debug.log(alloc)
           next { }
         }
 
@@ -27,7 +26,7 @@ component PullRequest {
           {
             pr =
               Maybe.andThen(
-                (p : PullRequest) : Maybe(PullRequest) {
+                (p : Model.PullRequest) : Maybe(Model.PullRequest) {
                   Maybe.just(
                     { p | builds = updateBuild(p.builds, build) })
                 },
@@ -38,11 +37,11 @@ component PullRequest {
     }
   }
 
-  fun updateBuild (builds : Array(Build), build : Build) : Array(Build) {
+  fun updateBuild (builds : Array(Model.Build), build : Model.Build) : Array(Model.Build) {
     case (pr) {
       Maybe::Just(justPr) =>
         if (build.prId == justPr.id) {
-          case (Array.find((b : Build) : Bool { b.id == build.id }, builds)) {
+          case (Array.find((b : Model.Build) : Bool { b.id == build.id }, builds)) {
             Maybe::Just(found) =>
               builds
               |> Array.setAt(Array.indexOf(found, builds), build)
@@ -74,7 +73,7 @@ component PullRequest {
         Maybe::Just(p) =>
           show(
             p.builds
-            |> Array.sortBy((b : Build) : Number { -Time.getTime(b.createdAt) }),
+            |> Array.sortBy((b : Model.Build) : Number { -Time.getTime(b.createdAt) }),
             p.data.pullRequest)
 
         =>
@@ -85,7 +84,10 @@ component PullRequest {
     </Container>
   }
 
-  fun show (builds : Array(Build), p : PullRequestInner) {
+  fun show (
+    builds : Array(Model.Build),
+    p : Model.PullRequestInner
+  ) {
     <div>
       <div class="row">
         <h3 class="col">
@@ -147,7 +149,7 @@ component PullRequest {
     </div>
   }
 
-  fun showBuild (build : Build) {
+  fun showBuild (build : Model.Build) {
     <tr>
       <td>
         <a href={"/build/" + build.id}>
@@ -193,53 +195,62 @@ component PullRequest {
   }
 }
 
-record Allocation {
+record Model.Output {
+  id : String,
+  path : String,
+  createdAt : Time using "created_at",
+  size : Number,
+  mime : String
+}
+
+record Model.Allocation {
   id : String,
   createdAt : Time using "created_at",
   updatedAt : Time using "updated_at",
   clientStatus : String using "client_status",
   index : Number,
-  evalId : String using "eval_id"
+  evalId : String using "eval_id",
+  outputs : Array(Model.Output)
 }
 
-record PullRequest {
+record Model.PullRequest {
   id : Number,
-  data : PullRequestData,
-  builds : Array(Build)
+  data : Model.PullRequestData,
+  builds : Array(Model.Build)
 }
 
-record PullRequestData {
-  pullRequest : PullRequestInner using "pull_request",
-  organization : PullRequestOrg
+record Model.PullRequestData {
+  pullRequest : Model.PullRequestInner using "pull_request",
+  organization : Model.PullRequestOrg
 }
 
-record PullRequestOrg {
+record Model.PullRequestOrg {
   login : String,
   avatarUrl : String using "avatar_url"
 }
 
-record PullRequestInner {
+record Model.PullRequestInner {
   id : Number,
   createdAt : Time using "created_at",
   title : String,
   number : Number,
   htmlUrl : String using "html_url",
-  head : PullRequestHead,
-  user : PullRequestUser
+  head : Model.PullRequestHead,
+  user : Model.PullRequestUser
 }
 
-record PullRequestHead {
+record Model.PullRequestHead {
   sha : String,
   ref : String,
-  repo : PullRequestRepo
+  repo : Model.PullRequestRepo
 }
 
-record PullRequestRepo {
+record Model.PullRequestRepo {
   htmlUrl : String using "html_url",
   fullName : String using "full_name"
 }
 
-record PullRequestUser {
+record Model.PullRequestUser {
   login : String,
   htmlUrl : String using "html_url"
 }
